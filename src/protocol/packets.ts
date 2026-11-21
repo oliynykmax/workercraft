@@ -97,6 +97,8 @@ export function configRegistries(clientHasVanillaData: boolean): Uint8Array {
 // ---- play ------------------------------------------------------------------
 
 export const playDisconnect = (reason: Text) => packet(C.play.disconnect, (w) => writeNbt(w, reason as Nbt));
+/** Ask a modern client to open a new connection without making them rejoin manually. */
+export const playTransfer = (host: string, port: number) => packet(C.play.transfer, (w) => w.string(host).varint(port));
 export const keepAlive = (id: bigint) => packet(C.play.keepAlive, (w) => w.i64(id));
 
 export const playLogin = (entityId: number, maxPlayers: number, viewDistance: number) =>

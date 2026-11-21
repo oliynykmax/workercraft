@@ -74,6 +74,7 @@ export const C = {
 		enabledFeatures: cb("configuration", "update_enabled_features"),
 		tags: cb("configuration", "update_tags"),
 		knownPacks: cb("configuration", "select_known_packs"),
+		transfer: optional("configuration", "clientbound", "transfer"),
 	},
 	play: {
 		addEntity: cb("play", "add_entity"),
@@ -114,6 +115,7 @@ export const C = {
 		swingAnimation: optional("play", "clientbound", "swing_animation"),
 		systemChat: cb("play", "system_chat"),
 		tabList: cb("play", "tab_list"),
+		transfer: optional("play", "clientbound", "transfer"),
 	},
 };
 

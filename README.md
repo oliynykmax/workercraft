@@ -4,6 +4,27 @@
 scratch in TypeScript, running on Cloudflare Workers. No JVM, no container, no
 VM: a Worker takes the TCP connection and a Durable Object is the world.
 
+## Paper wake lobby (this fork)
+
+This fork uses the tiny Workercraft world as a temporary Java lobby while a
+Paper backend starts. A real join calls an authenticated wake endpoint, then
+the player is transferred to Paper as soon as that endpoint reports it ready.
+Server-list pings never wake Paper.
+
+Set these Worker secrets before deploying:
+
+```sh
+npx wrangler secret put WAKE_URL       # https://<tunnel-host>/wake
+npx wrangler secret put WAKE_TOKEN     # same random value as the VM gateway
+npx wrangler deploy
+```
+
+`BACKEND_HOST` and `BACKEND_PORT` live in `wrangler.jsonc`. The companion
+gateway is in the parent Minecraft deployment at `deploy/wake-gateway.ts`; it
+must be reachable only through a Cloudflare Tunnel. The player transfers only
+after its RCON readiness check succeeds, rather than when Java merely opens a
+port.
+
 A demo world runs at **`mc.bad.engineering`** (Java Edition 26.3). It is a
 public creative world that checks nobody's account, so expect a mess, and it
 may not stay up.

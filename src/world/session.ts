@@ -49,6 +49,7 @@ export class Session {
 	private outbox: Uint8Array[] = [];
 	private queuedBytes = 0;
 	private lastWrite: Promise<void> = Promise.resolve();
+	private backendTimer?: ReturnType<typeof setTimeout>;
 	private reader: ReadableStreamDefaultReader<Uint8Array>;
 	private writer: WritableStreamDefaultWriter<Uint8Array>;
 
@@ -84,6 +85,7 @@ export class Session {
 		} finally {
 			clearTimeout(loginDeadline);
 			this.close();
+			if (this.backendTimer) clearTimeout(this.backendTimer);
 			if (this.player) this.world.leave(this.player);
 			await Promise.race([this.lastWrite, new Promise((resolve) => setTimeout(resolve, FLUSH_TIMEOUT_MS))]);
 		}
@@ -138,6 +140,7 @@ export class Session {
 	close(): void {
 		if (this.phase === "closed") return;
 		this.phase = "closed";
+		if (this.backendTimer) clearTimeout(this.backendTimer);
 		// Ends the read loop in run(). The socket itself closes when run() returns,
 		// which is once everything queued (a disconnect message, say) is written.
 		this.reader.cancel().catch(() => {});
@@ -211,8 +214,24 @@ export class Session {
 				if (!this.sentRegistries) throw new ProtocolError("Configuration finished early");
 				this.phase = "play";
 				await this.world.join(this);
+				this.watchBackend();
 				return;
 		}
+	}
+
+	/** Keep the player in the micro-world until Paper reports a working RCON connection. */
+	private watchBackend(): void {
+		const attempt = async () => {
+			if (this.phase !== "play") return;
+			const backend = await this.world.backendStatus();
+			const host = this.world.backendHost;
+			if (backend.state === "ready" && host) {
+				this.send(out.playTransfer(host, this.world.backendPort));
+				return;
+			}
+			this.backendTimer = setTimeout(attempt, Math.max(1_000, Math.min(backend.retryAfterMs ?? 2_000, 10_000)));
+		};
+		void attempt();
 	}
 
 	private async onPlay(id: number, r: Reader): Promise<void> {

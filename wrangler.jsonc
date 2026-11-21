@@ -23,7 +23,11 @@
 		// Chunks sent around each player, as a radius.
 		"VIEW_DISTANCE": "8",
 		// "off" stops the lookups of player skins on Mojang's API.
-		"SKINS": "on"
+		"SKINS": "on",
+		// Paper's public address. WAKE_URL and WAKE_TOKEN are deployment secrets,
+		// supplied with `wrangler secret put`, never committed here.
+		"BACKEND_HOST": "mc.oliinyk.dev",
+		"BACKEND_PORT": "25565"
 	},
 	"observability": { "enabled": true }
 }

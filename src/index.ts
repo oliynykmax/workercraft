@@ -7,6 +7,7 @@
 import { Deframer, Reader, concat } from "./net/bytes";
 import type { Text } from "./net/nbt";
 import { statusPong, statusResponse } from "./protocol/packets";
+import { wakeBackend } from "./backend";
 import { PROTOCOL, S, VERSION_NAME } from "./protocol/version";
 import type { Env, WorldStatus } from "./world/world";
 
@@ -78,6 +79,8 @@ export default {
 			}
 
 			// Joining. Hand the connection to the world, replaying what was already read.
+			// Do not wait here: the player gets into the tiny lobby while Paper starts.
+			void wakeBackend(env);
 			clearTimeout(timeout);
 			reader.releaseLock();
 			const upstream = world(env).connect("world:25565", { allowHalfOpen: true, secureTransport: "off" });

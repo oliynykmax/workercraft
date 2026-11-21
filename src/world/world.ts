@@ -3,6 +3,7 @@
 // game logic needs no locks. The changed blocks live in its SQLite storage.
 
 import { DurableObject, RpcTarget } from "cloudflare:workers";
+import { wakeBackend, type BackendStatus } from "../backend";
 import { bytesToUuid, concat } from "../net/bytes";
 import type { Text } from "../net/nbt";
 import type { PlayerInfo, Server } from "../plugins/api";
@@ -39,6 +40,10 @@ export interface Env {
 	VIEW_DISTANCE?: string;
 	/** Set to "off" to never call Mojang's profile API. */
 	SKINS?: string;
+	WAKE_URL?: string;
+	WAKE_TOKEN?: string;
+	BACKEND_HOST?: string;
+	BACKEND_PORT?: string;
 }
 
 export interface Player {
@@ -150,6 +155,20 @@ export class World extends DurableObject<Env> {
 
 	status(): WorldStatus {
 		return { online: this.players.size, max: this.maxPlayers, players: this.playerInfos().map(({ name, uuid }) => ({ name, uuid })) };
+	}
+
+	/** Starts Paper if necessary and reports whether a transfer can happen yet. */
+	backendStatus(): Promise<BackendStatus> {
+		return wakeBackend(this.env);
+	}
+
+	get backendHost(): string | undefined {
+		return this.env.BACKEND_HOST;
+	}
+
+	get backendPort(): number {
+		const port = Number(this.env.BACKEND_PORT ?? "25565");
+		return Number.isInteger(port) && port > 0 && port < 65_536 ? port : 25565;
 	}
 
 	get isFull(): boolean {
