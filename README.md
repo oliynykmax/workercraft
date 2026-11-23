@@ -16,10 +16,10 @@ Set these Worker secrets before deploying:
 ```sh
 npx wrangler secret put WAKE_URL       # https://<tunnel-host>/wake
 npx wrangler secret put WAKE_TOKEN     # same random value as the VM gateway
-npx wrangler deploy
+npx wrangler deploy --var BACKEND_HOST:<paper-host>
 ```
 
-`BACKEND_HOST` and `BACKEND_PORT` live in `wrangler.jsonc`. The companion
+`BACKEND_HOST` is your Paper server's public address and is passed at deploy time. `BACKEND_PORT` lives in `wrangler.jsonc`. Every setting is in `.env.example`. The companion
 gateway is in the parent Minecraft deployment at `deploy/wake-gateway.ts`; it
 must be reachable only through a Cloudflare Tunnel. The player transfers only
 after its RCON readiness check succeeds, rather than when Java merely opens a
